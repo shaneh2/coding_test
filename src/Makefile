@@ -9,7 +9,7 @@ make_report: ../data/full_data_csv.csv ../data/full_data_feather.feather
 	python3 0prepare_data.py
 
 install_required_pip_packages:
-	pip3 install -r requirements.txt
+	pip3 install -r ../requirements.txt
 	@echo "If pip is not installed, try make install_pip"
 
 install_pip:
