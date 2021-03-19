@@ -2,7 +2,7 @@ import pandas as pd
 
 RAW_DATA_LOCATION = "../data/full_data_csv.csv"
 FULL_DATA_FEATHER_PATH = "../data/full_data_feather.feather"
-# TODO: change this boolean when putting in all data..
+# TODO: change this boolean when putting in all data, which might not contain the 'Record_status' field
 IGNORING_MONTHLY_UPDATE_FIELD = False
 
 columns_dict = {'UID': str,

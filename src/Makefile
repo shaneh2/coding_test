@@ -1,6 +1,6 @@
 make_report: ../data/full_data_csv.csv ../data/full_data_feather.feather
-	pweave report.pmd
-	open report.html
+	pweave -f markdown README.pmd
+	@echo "Report has been created: README.md"
 
 ../data/full_data_csv.csv:
 	curl http://prod.publicdata.landregistry.gov.uk.s3-website-eu-west-1.amazonaws.com/pp-2020.csv -L -o ../data/full_data_csv.csv

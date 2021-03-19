@@ -1,3 +1,18 @@
+# Coding Test Report
+In this report, I include all the code, and a sample output
+
+## How to compile:
+The command `make` runs the analysis and automatically generates this report:
+ * The raw data will be downloaded and saved in feather format using `curl` and `0prepare_data.py` if it hasn't already been.
+ * Then the code in `q1.py`,..., `q4.py` will be run.
+ * The outputs of the code will be shown in README.md in this directory.
+
+## Requirements
+ * I'm using a MacOS 11.2.3 computer, with Xcode command line tools installed (to use `make`).
+ * To install the required Python packages, run `make install_required_pip_packages`.
+ * If pip isn't installed, try `make install_pip`.
+
+## Loading data from feather file
 
 ```python
 import pandas as pd
@@ -14,10 +29,18 @@ import pandas as pd
 
 
 def get_most_expensive_houses_by_county(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Gets the most expensive houses in each county, from the inputted pandas DataFrame
+    :param df: a pandas DataFrame like described here: https://www.gov.uk/guidance/about-the-price-paid-data
+    :return: a DataFrame with highest transaction values in each county
+    """
     indices_of_interest = list(df.groupby('County').max("Price")['index'])
     return df.iloc[indices_of_interest]
 
 
+'''
+Here is an example of this function being used:
+'''
 get_most_expensive_houses_by_county(df)
 
 ```
@@ -124,11 +147,16 @@ import pandas as pd
 
 
 def get_districts_with_highest_transaction_values_each_quarter(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Gets the districts with the highest transaction values in each quarter
+    :param df: a pandas DataFrame like described here: https://www.gov.uk/guidance/about-the-price-paid-data
+    :return: a DataFrame with, for each quarter, the 5 districts with the highest total transaction values
+    """
     # Using this guide to regex: https://stackoverflow.com/a/2013150
     df['District'] = df['Postcode'].str.extract("([^ ]*)")
-    df['Quarter'] = 'Q' + pd.DatetimeIndex(df['Date_of_transfer']).quarter.astype(str) \
-                    + ' ' \
-                    + pd.DatetimeIndex(df['Date_of_transfer']).year.astype(str)
+    quarters_column = pd.DatetimeIndex(df['Date_of_transfer']).quarter.astype(str)
+    years_column = pd.DatetimeIndex(df['Date_of_transfer']).year.astype(str)
+    df['Quarter'] = 'Q' + quarters_column + ' ' + years_column
     # How to do sorting within nested groupBy: https://stackoverflow.com/a/36074520
     return df.groupby(['Quarter', 'District']) \
         .sum('Price') \
@@ -137,6 +165,9 @@ def get_districts_with_highest_transaction_values_each_quarter(df: pd.DataFrame)
         .head(5)
 
 
+'''
+Here is an example of this function being used:
+'''
 get_districts_with_highest_transaction_values_each_quarter(df)
 
 ```
@@ -176,26 +207,58 @@ import pandas as pd
 
 
 def percent_of_transactions_of_each_type_in_top_80pcnt(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Gets the percent of transactions of each type which make up the top 80% of transactions by value
+    :param df: a pandas DataFrame like described here: https://www.gov.uk/guidance/about-the-price-paid-data
+    :return: a DataFrame broken down by year and property type, which shows the percentage of transactions which sum in
+            value to 80% of total transaction value
+    """
     df['YearAndType'] = pd.DatetimeIndex(df['Date_of_transfer']).year.astype(str) + df['Property_type']
-    transactions_summation_df = df.groupby(['YearAndType']).sum('Price').reset_index().drop(['index'], axis=1)
-    transactions_summation_df['Price'] = transactions_summation_df['Price'] * 0.8
-    transactions_summation_df.rename(columns={'Price': '80% of Total Transaction Value'}, inplace=True)
-    sorted_transactions_df = df.sort_values(['YearAndType', 'Price'], ascending=False)
-    sorted_transactions_df['cumsum'] = sorted_transactions_df.groupby('YearAndType')['Price'].transform(
-        pd.Series.cumsum)
-    sorted_transactions_with_category_totals = pd.merge(sorted_transactions_df, transactions_summation_df,
-                                                        on='YearAndType')
-    sorted_transactions_with_category_totals['in_top_80%_of_value'] = sorted_transactions_with_category_totals[
-                                                                          'cumsum'] < \
-                                                                      sorted_transactions_with_category_totals[
-                                                                          '80% of Total Transaction Value']
-    query_result = \
-    sorted_transactions_with_category_totals.groupby('YearAndType').mean('in_top_80%_of_value').reset_index()[
-        ['YearAndType', 'in_top_80%_of_value']]
+    transactions_summation_df = _get_80_percent_of_transaction_total_for_each_year_and_type(df)
+    sorted_transactions_df = _value_of_all_sales_in_year_and_type_which_are_greater_than_this_transaction(df)
+    sorted_with_category_totals_df = pd.merge(sorted_transactions_df, transactions_summation_df,
+                                              on='YearAndType')
+    sorted_with_category_totals_df['in_top_80%_of_value'] = sorted_with_category_totals_df['cumsum'] < \
+                                                            sorted_with_category_totals_df[
+                                                                '80% of Total Transaction Value']
+    query_result = sorted_with_category_totals_df \
+        .groupby('YearAndType') \
+        .mean('in_top_80%_of_value') \
+        .reset_index()[['YearAndType', 'in_top_80%_of_value']]
     query_result['Percent in top 80% of value'] = 100 * query_result['in_top_80%_of_value']
     return query_result
 
 
+def _value_of_all_sales_in_year_and_type_which_are_greater_than_this_transaction(df: pd.DataFrame)->pd.DataFrame:
+    """
+
+    :param df:  a pandas DataFrame like described here: https://www.gov.uk/guidance/about-the-price-paid-data,
+                but with a YearAndType column
+    :return: DataFrame, describing for each transaction, the total value of all transactions of that year and type,
+                which are greater in value to this transaction, including this transaction
+    """
+    sorted_transactions_df = df.sort_values(['YearAndType', 'Price'], ascending=False)
+    sorted_transactions_df['cumsum'] = sorted_transactions_df.groupby('YearAndType')['Price'].transform(
+        pd.Series.cumsum)
+    return sorted_transactions_df
+
+
+def _get_80_percent_of_transaction_total_for_each_year_and_type(df: pd.DataFrame) -> pd.DataFrame:
+    """
+
+    :param df: a pandas DataFrame like described here: https://www.gov.uk/guidance/about-the-price-paid-data,
+                but with a YearAndType column
+    :return: DataFrame, which includes the total value of each transaction type for each year, multiplied by 0.8
+    """
+    transactions_summation_df = df.groupby(['YearAndType']).sum('Price').reset_index().drop(['index'], axis=1)
+    transactions_summation_df['Price'] = transactions_summation_df['Price'] * 0.8
+    transactions_summation_df.rename(columns={'Price': '80% of Total Transaction Value'}, inplace=True)
+    return transactions_summation_df
+
+
+'''
+Here is an example of this function being used:
+'''
 percent_of_transactions_of_each_type_in_top_80pcnt(df)
 
 ```
@@ -220,6 +283,11 @@ import pandas as pd
 
 
 def _add_price_buckets_to_df(df: pd.DataFrame) -> pd.DataFrame:
+    """
+
+    :param df: a pandas DataFrame like described here: https://www.gov.uk/guidance/about-the-price-paid-data
+    :return: a pandas DataFrame, with a new (string) column, indicating which price bucket each transaction is in
+    """
     cut_labels = ["£0 < x <= £250,000",
                   "£250,000 < x <= £500,000",
                   "£500,000 < x <= £750,000",
@@ -233,28 +301,55 @@ def _add_price_buckets_to_df(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def _get_transaction_count_for_each_price_bucket(df: pd.DataFrame) -> pd.core.series.Series:
+    """
+
+    :param df: a pandas DataFrame like described here: https://www.gov.uk/guidance/about-the-price-paid-data ,
+                but with a 'Price Bucket' string column added
+    :return: a DataFrame describing the number of transactions in each bucket
+    """
     query_result = df.groupby("Price Bucket").size()
     return query_result
 
 
 def _get_median_price_for_each_bucket(df: pd.DataFrame) -> pd.DataFrame:
+    """
+
+    :param df: a pandas DataFrame like described here: https://www.gov.uk/guidance/about-the-price-paid-data ,
+                but with a 'Price Bucket' string column added
+    :return: a DataFrame describing the median transaction value for each price bucket
+    """
     query_result = df.groupby("Price Bucket").median("Price").reset_index().drop(['index'], axis=1).rename(
         columns={'Price': 'Median Price'})
     return query_result
 
 
 def __get_percentage_changes_between_two_lists(old_list: List, new_list: List) -> List[float]:
+    """
+    A utility function for calculating the elementwise percentage changes in values between two lists
+    :param old_list: a list of floats/ints
+    :param new_list: a list of the same length and types
+    :return: a list of percentages, of the same length
+    """
     percentage_changes_list = []
     assert (len(old_list) == len(new_list))
     for i in range(len(old_list)):
         old = old_list[i]
         new = new_list[i]
-        change_percent = 100 * (new - old) / old
+        if old==0:
+            change_percent=100 #TODO: decide what to do if the number we're comparing with is 0
+        else:
+            change_percent = 100 * (new - old) / old
         percentage_changes_list.append(change_percent)
     return percentage_changes_list
 
 
 def _get_pcnt_change_in_transaction_counts(last_years_df: pd.DataFrame, this_years_df: pd.DataFrame) -> List[float]:
+    """
+    Gets the percentage change in transaction counts
+    :param last_years_df: a pandas DataFrame like described here: https://www.gov.uk/guidance/about-the-price-paid-data
+    :param this_years_df: a pandas DataFrame like described here: https://www.gov.uk/guidance/about-the-price-paid-data
+    :return: a list describing the percent differences in transaction counts in each bucket
+    """
     old_transation_counts = _get_transaction_count_for_each_price_bucket(last_years_df).values
     new_transaction_counts = _get_transaction_count_for_each_price_bucket(this_years_df).values
     percentage_changes_in_transaction_count = __get_percentage_changes_between_two_lists(old_transation_counts,
@@ -264,6 +359,12 @@ def _get_pcnt_change_in_transaction_counts(last_years_df: pd.DataFrame, this_yea
 
 def _get_pcnt_change_in_median_prices_in_buckets(last_years_df: pd.DataFrame, this_years_df: pd.DataFrame) -> List[
     float]:
+    """
+    Gets the percent change in the median transaction price in each bucket
+    :param last_years_df: a pandas DataFrame like described here: https://www.gov.uk/guidance/about-the-price-paid-data
+    :param this_years_df: a pandas DataFrame like described here: https://www.gov.uk/guidance/about-the-price-paid-data
+    :return: a list, describing the percent differences in median transaction value in each bucket
+    """
     old_transaction_medians = list(_get_median_price_for_each_bucket(last_years_df)['Median Price'].values)
     new_transaction_medians = list(_get_median_price_for_each_bucket(this_years_df)['Median Price'].values)
     percentage_changes_in_medians = __get_percentage_changes_between_two_lists(old_transaction_medians,
@@ -273,6 +374,13 @@ def _get_pcnt_change_in_median_prices_in_buckets(last_years_df: pd.DataFrame, th
 
 # %%
 def compare_two_dataframes(last_years_df: pd.DataFrame, this_years_df: pd.DataFrame) -> pd.DataFrame:
+    """
+
+    :param last_years_df: a pandas DataFrame like described here: https://www.gov.uk/guidance/about-the-price-paid-data
+    :param this_years_df: a pandas DataFrame like described here: https://www.gov.uk/guidance/about-the-price-paid-data
+    :return: a DataFrame, which shows the percent changes in total transaction counts and median price paid,
+            in each transaction bucket
+    """
     cut_labels = ["£0 < x <= £250,000",
                   "£250,000 < x <= £500,000",
                   "£500,000 < x <= £750,000",
@@ -292,6 +400,9 @@ def compare_two_dataframes(last_years_df: pd.DataFrame, this_years_df: pd.DataFr
     return query_result
 
 
+'''
+Here is an example of this function being used:
+'''
 one_df = df.query("Town_city=='BATH'").copy()
 another_df = df.query("Town_city=='BEDFORD'").copy()
 compare_two_dataframes(one_df, another_df)

@@ -1,0 +1,38 @@
+# Coding Test Report
+In this report, I include all the code, and a sample output
+
+## How to compile:
+The command `make` runs the analysis and automatically generates this report:
+ * The raw data will be downloaded and saved in feather format using `curl` and `0prepare_data.py` if it hasn't already been.
+ * Then the code in `q1.py`,..., `q4.py` will be run.
+ * The outputs of the code will be shown in README.md in this directory.
+
+## Requirements
+ * I'm using a MacOS 11.2.3 computer, with Xcode command line tools installed (to use `make`).
+ * To install the required Python packages, run `make install_required_pip_packages`.
+ * If pip isn't installed, try `make install_pip`.
+
+## Loading data from feather file
+```{python}
+import pandas as pd
+FEATHER_FILE_LOCATION = "../data/full_data_feather.feather"
+df = pd.read_feather(FEATHER_FILE_LOCATION)
+```
+
+#Q1: Most expensive houses by county
+```{python, source='q1.py'}
+```
+
+#Q2: Top 5 districts by quarterly transaction value
+```{python source ='q2.py'}
+```
+
+
+#Q3: Transaction value concentration
+```{python, source='q3.py'}
+```
+
+
+#Q4: Volume and median price comparisons
+```{python,source="q4.py"}
+```
