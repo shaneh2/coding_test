@@ -22,7 +22,7 @@ df = pd.read_feather(FEATHER_FILE_LOCATION)
 
 
 
-#Q1: Most expensive houses by county
+# Q1: Most expensive houses by county
 
 ```python
 import pandas as pd
@@ -140,7 +140,7 @@ B
 
 
 
-#Q2: Top 5 districts by quarterly transaction value
+# Q2: Top 5 districts by quarterly transaction value
 
 ```python
 import pandas as pd
@@ -200,7 +200,7 @@ Q1 2020 SE1        78440132   347234209
 
 
 
-#Q3: Transaction value concentration
+# Q3: Transaction value concentration
 
 ```python
 import pandas as pd
@@ -275,7 +275,7 @@ percent_of_transactions_of_each_type_in_top_80pcnt(df)
 
 
 
-#Q4: Volume and median price comparisons
+# Q4: Volume and median price comparisons
 
 ```python
 from typing import List
@@ -318,8 +318,11 @@ def _get_median_price_for_each_bucket(df: pd.DataFrame) -> pd.DataFrame:
                 but with a 'Price Bucket' string column added
     :return: a DataFrame describing the median transaction value for each price bucket
     """
-    query_result = df.groupby("Price Bucket").median("Price").reset_index().drop(['index'], axis=1).rename(
-        columns={'Price': 'Median Price'})
+    query_result = df.groupby("Price Bucket") \
+                        .median("Price") \
+                        .reset_index() \
+                        .drop(['index'], axis=1) \
+                        .rename(columns={'Price': 'Median Price'})
     return query_result
 
 

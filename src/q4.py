@@ -38,8 +38,11 @@ def _get_median_price_for_each_bucket(df: pd.DataFrame) -> pd.DataFrame:
                 but with a 'Price Bucket' string column added
     :return: a DataFrame describing the median transaction value for each price bucket
     """
-    query_result = df.groupby("Price Bucket").median("Price").reset_index().drop(['index'], axis=1).rename(
-        columns={'Price': 'Median Price'})
+    query_result = df.groupby("Price Bucket") \
+                        .median("Price") \
+                        .reset_index() \
+                        .drop(['index'], axis=1) \
+                        .rename(columns={'Price': 'Median Price'})
     return query_result
 
 
