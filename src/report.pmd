@@ -1,0 +1,23 @@
+```{python}
+import pandas as pd
+FEATHER_FILE_LOCATION = "../data/full_data_feather.feather"
+df = pd.read_feather(FEATHER_FILE_LOCATION)
+```
+
+#Q1: Most expensive houses by county
+```{python, source='q1.py'}
+```
+
+#Q2: Top 5 districts by quarterly transaction value
+```{python source ='q2.py'}
+```
+
+
+#Q3:
+```{python, source='q3.py'}
+```
+
+
+#Q4
+```{python,source="q4.py"}
+```
