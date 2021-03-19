@@ -1,5 +1,5 @@
 # Coding Test Report
-In this report, I include all the code, and a sample output
+In this report, I include all the code, and a sample output for each question.
 
 ## How to compile:
 The command `make` runs the analysis and automatically generates this report:

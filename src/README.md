@@ -1,5 +1,5 @@
 # Coding Test Report
-In this report, I include all the code, and a sample output
+In this report, I include all the code, and a sample output for each question.
 
 ## How to compile:
 The command `make` runs the analysis and automatically generates this report:
@@ -404,7 +404,7 @@ def compare_two_dataframes(last_years_df: pd.DataFrame, this_years_df: pd.DataFr
 
 
 '''
-Here is an example of this function being used:
+Here is an example of this function being used, comparing percentage differences between Bath and Bedford:
 '''
 one_df = df.query("Town_city=='BATH'").copy()
 another_df = df.query("Town_city=='BEDFORD'").copy()
