@@ -3,7 +3,7 @@ import pandas as pd
 RAW_DATA_LOCATION = "../data/full_data_csv.csv"
 FULL_DATA_FEATHER_PATH = "../data/full_data_feather.feather"
 # TODO: change this boolean when putting in all data..
-IGNORING_MONTHLY_UPDATE_FIELD = True
+IGNORING_MONTHLY_UPDATE_FIELD = False
 
 columns_dict = {'UID': str,
                 'Price': int,

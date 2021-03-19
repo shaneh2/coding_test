@@ -3,7 +3,7 @@ make_report: ../data/full_data_csv.csv ../data/full_data_feather.feather
 	open report.html
 
 ../data/full_data_csv.csv:
-	curl http://prod.publicdata.landregistry.gov.uk.s3-website-eu-west-1.amazonaws.com/pp-complete.csv -L -o ../data/full_data_csv.csv
+	curl http://prod.publicdata.landregistry.gov.uk.s3-website-eu-west-1.amazonaws.com/pp-2020.csv -L -o ../data/full_data_csv.csv
 
 ../data/full_data_feather.feather:
 	python3 0prepare_data.py

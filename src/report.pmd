@@ -13,11 +13,11 @@ df = pd.read_feather(FEATHER_FILE_LOCATION)
 ```
 
 
-#Q3:
+#Q3: Transaction value concentration
 ```{python, source='q3.py'}
 ```
 
 
-#Q4
+#Q4: Volume and median price comparisons
 ```{python,source="q4.py"}
 ```
