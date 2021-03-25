@@ -1,16 +1,16 @@
-make_report: ../data/full_data_csv.csv ../data/full_data_feather.feather
+make_report: ../data/full_data_feather.feather
 	pweave -f markdown README.pmd
 	@echo "Report has been created: README.md"
 
 ../data/full_data_csv.csv:
 	curl http://prod.publicdata.landregistry.gov.uk.s3-website-eu-west-1.amazonaws.com/pp-2020.csv -L -o ../data/full_data_csv.csv
 
-../data/full_data_feather.feather:
+../data/full_data_feather.feather: ../data/full_data_csv.csv
 	python3 0prepare_data.py
 
-install_required_pip_packages:
+install_required_pip_packages: install_pip
 	pip3 install -r ../requirements.txt
-	@echo "If pip is not installed, try make install_pip"
+	@echo "Now run this to go into the virtual environment: source ../venv/bin/activate"
 
 install_pip:
 	sudo -H python3 -m ensurepip
